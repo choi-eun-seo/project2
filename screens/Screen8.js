@@ -7,21 +7,25 @@ import {
   ImageBackground,
   Text,
   TextInput,
-  ScrollView
+  ScrollView, 
+  Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { FontFamily, Color, Border, FontSize } from "../GlobalStyles";
 import axios from "axios";
+import ENV from '../env';
 
 const Screen8 = ({route}) => {
   
   const navigation = useNavigation();
   const [userInfo, setUserInfo] = useState(null);
+  const [newSensorNumber, setNewSensorNumber] = useState("");
 
   // 사용자 정보 가져오기
   const fetchUserInfo = async () => {
     try {
-      const serverUrl = 'http://192.168.35.45:3000';
+      // const serverUrl = 'http://192.168.35.45:3000';
+      const serverUrl = ENV.SERVER_URL;
       const response = await axios.get(`${serverUrl}/getUserInfo`, {
         params: { phoneNumber: route.params.phoneNumber } 
       });
@@ -44,27 +48,30 @@ const Screen8 = ({route}) => {
     }
   }, [route.params.phoneNumber]); // phoneNumber가 변경될 때만 useEffect 호출
 
-  // // 센서 번호 변경 요청 보내기
-  // const handleSensorNumberChange = async () => {
-  //   try {
-  //     const serverUrl = 'http://192.168.35.45:3000';
-  //     const response = await axios.post(`${serverUrl}/updateSensorNumber`, {
-  //       phoneNumber: route.params.phoneNumber,
-  //       newSensorNumber: newSensorNumber
-  //     });
+  // 센서 번호 변경 요청 보내기
+  const handleSensorNumberChange = async (newSensorNumber) => {
+    try {
 
-  //     if (response.data.success) {
-  //       // 센서 번호 변경 성공
-  //       console.log("센서 번호 변경 성공");
-  //       setCurrentSensorNumber(newSensorNumber); // 센서 번호 업데이트
-  //       setNewSensorNumber(""); // 입력 필드 초기화
-  //     } else {
-  //       console.error("센서 번호 변경 실패");
-  //     }
-  //   } catch (error) {
-  //     console.error("센서 번호 변경 중 오류 발생:", error);
-  //   }
-  // };
+      const response = await axios.post(`${serverUrl}/updateSensorNumber`, {
+        phoneNumber: route.params.phoneNumber,
+        newSensorNumber: newSensorNumber
+      });
+
+      if (response.data.success) {
+        // 센서 번호 변경 성공
+        console.log("센서 번호 변경 성공");
+        Alert.alert("센서 번호 변경 성공", "센서 번호가 변경되었습니다.");
+        setUserInfo(prevUserInfo => ({
+          ...prevUserInfo,
+          sensor_number: newSensorNumber
+        }));
+      } else {
+        console.error("센서 번호 변경 실패");
+      }
+    } catch (error) {
+      console.error("센서 번호 변경 중 오류 발생:", error);
+    }
+  };
 
   
 
@@ -148,7 +155,13 @@ const Screen8 = ({route}) => {
       <TextInput
         style={[styles.textinput, styles.icon4Layout]}
         keyboardType="default"
+        onChangeText={text => setNewSensorNumber(text)}
       />
+      <View style={[styles.pressable2, styles.recentlyTypo6]}>
+        <Pressable onPress={() => handleSensorNumberChange(newSensorNumber)}>
+         <Text style={[styles.recentlyAdded8, styles.recentlyTypo6]}>변경하기</Text>
+        </Pressable>
+      </View>
     </View>
     </ScrollView>
   );
@@ -160,7 +173,31 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     // paddingBottom:100,
   },
-  
+
+  recentlyTypo6: {
+    color: Color.white,
+    textAlign: "center",
+    fontFamily: FontFamily.hancomMalangMalangRegular,
+    fontWeight: "700",
+    letterSpacing: 0,
+    fontSize: FontSize.size_lg,
+  },
+
+  pressable2: {
+    marginTop: 21,
+    height: 45,
+    marginLeft: 29,
+    backgroundColor: Color.steelblue,
+    borderRadius: Border.br_3xs,
+    width: "79.51%",
+  },
+
+  recentlyAdded8: {
+    width: "40.97%",
+    marginTop: 10,
+    marginLeft: 90,
+  },
+
   iconLayout: {
     overflow: "hidden",
     maxWidth: "100%",
@@ -316,6 +353,7 @@ const styles = StyleSheet.create({
     borderRadius: Border.br_xl,
     width: "85.51%",
   },
+  
   view3: {
     height: 349,
     marginTop: 19,

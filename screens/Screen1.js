@@ -1,17 +1,50 @@
-import * as React from "react";
+// import * as React from "react";
+import React, { useState, useEffect } from "react";
 import { Pressable, Image, StyleSheet, View, ScrollView } from "react-native";
 import RiskContainer from "../components/RiskContainer";
 import { useNavigation } from "@react-navigation/native";
 import { Border, Color } from "../GlobalStyles";
+import SensorDataChart from "../components/SensorDataChart";
+import ENV from "../env";
 import axios from "axios";
 
 const Screen1 = ({route}) => {
   // const {phoneNumber} = route.params;
   const phoneNumber = route.params.phoneNumber;
   const navigation = useNavigation();
+  const [sensorData, setSensorData] = React.useState(null);
+
+  const fetchSensorData = async () => {
+    try {
+      const serverUrl = ENV.SERVER_URL;
+      const response = await axios.get(`${serverUrl}/sensorData`, {
+        params: { phoneNumber },
+      });
+
+      if (response.data.success) {
+        setSensorData(response.data.sensorData);
+      } else {
+        console.error("센서 데이터 요청 실패");
+      }
+    } catch (error) {
+      console.error("센서 데이터를 가져오는 중 오류 발생:", error);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSensorData(); 
+
+    // const sensorDataIntervalId = setInterval(fetchSensorData, 1800000); // 30분마다 센서 데이터 가져오기
+    const sensorDataIntervalId = setInterval(fetchSensorData, 60000); // 1분마다 센서 데이터 가져오기
+
+    return () => {
+      clearInterval(sensorDataIntervalId);
+    };
+  }, []);
+
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollViewContent}>
+    <ScrollView  contentContainerStyle={styles.scrollViewContent}>
     <View style={styles.view}>
       <RiskContainer phoneNumber={phoneNumber}  />
       {/* 온습도 */}
@@ -19,6 +52,11 @@ const Screen1 = ({route}) => {
         style={[styles.icon, styles.iconLayout]}
         resizeMode="cover"
         source={require("../assets/111.png")}
+      />
+      <Image
+        style={[styles.icon4, styles.icon4Layout]}
+        resizeMode="cover"
+        source={require("../assets/htemp.png")}
       />
       {/* 발열량 */}
       <Pressable
@@ -48,28 +86,55 @@ const Screen1 = ({route}) => {
         />
       </Pressable>
       {/* 상자박스 */}
-      <View style={styles.view1}>
-        <View style={styles.view2} />
+      {/* SensorDataChart 컴포넌트 추가 및 sensorData props 전달 */}
+      <ScrollView 
+      contentContainerStyle={styles.scrollViewContent}
+      horizontal={true}
+      showsHorizontalScrollIndicator = {true}
+      >
+      <View style={styles.view3}>
+      <SensorDataChart sensorData={sensorData} />
       </View>
-      
+     
+      </ScrollView>      
     </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  view3: {
+    flex: 1,
+    marginTop: 40,
+    borderTopLeftRadius: Border.br_15xl,
+    borderTopRightRadius: Border.br_15xl,
+    
+  },
   scrollViewContent: {
     flexGrow: 1,
+    
   },
   iconLayout: {
     height: 193,
     width: 129,
   },
   icon: {
-    marginTop: 22,
+    marginTop: 15,
     marginRight: 135,
-    
+    zIndex: 2,
   },
+  icon4: {
+    marginTop: -185,
+    marginRight: 133,
+    zIndex: 1,
+  },
+  icon4Layout: {
+    height: 193,
+    width: 129,
+  },
+
+
+
   icon1: {
     height: "100%",
     width: "100%",

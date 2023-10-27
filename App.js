@@ -1,8 +1,13 @@
+
+
 const Stack = createNativeStackNavigator();
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 
 
+
+import Screen10 from "./screens/Screen10"; 
+import Screen9 from "./screens/Screen9";
 import Screen7 from "./screens/Screen7";
 import Screen8 from "./screens/Screen8";
 import Screen6 from "./screens/Screen6";
@@ -12,8 +17,11 @@ import Screen3 from "./screens/Screen3";
 import Screen2 from "./screens/Screen2";
 import Screen1 from "./screens/Screen1";
 
+
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, Text, Pressable, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, Pressable, TouchableOpacity, ScrollView, Button } from "react-native";
+
+
 
 
 const App = () => {
@@ -81,6 +89,22 @@ const App = () => {
             <Stack.Screen
               name="Screen1"
               component={Screen1}
+              options={{ 
+                headerShown: false,
+                animation: 'fade',
+              }}
+            />
+            <Stack.Screen
+              name="Screen9"
+              component={Screen9}
+              options={{ 
+                headerShown: false,
+                animation: 'fade',
+              }}
+            />
+            <Stack.Screen
+              name="Screen10"
+              component={Screen10}
               options={{ 
                 headerShown: false,
                 animation: 'fade',

@@ -1,39 +1,56 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Pressable, StyleSheet, View, Image, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Border, FontSize, Color, FontFamily } from "../GlobalStyles";
 import axios from 'axios';
+import ENV from '../env';
 
 const RiskContainer = ({ phoneNumber }) => {
   const navigation = useNavigation();
-  
-  const handleMenuPress = () => {
-    navigation.navigate("Screen3", {phoneNumber});
-    
-  };
-  // const handleMenuPress = () => {
-  //   navigation.navigate("Screen3", { phoneNumber });
-   
-  // };
-  // const handleMenuPress = async () => {
-  //   try {
-  //     const serverUrl = 'http://192.168.35.45:3000'; // 서버 URL
-  //     const response = await axios.get(`${serverUrl}/getUserInfo`, {
-  //       params: { phoneNumber }
-  //     });
-  
-  //     if (response.data.success) {
-  //       const userInfo = response.data.user; // 가져온 사용자 정보
-  //       // 화면 전환 및 사용자 정보 전달
-  //       navigation.navigate("Screen3", { phoneNumber});
-  //     } else {
-  //       console.error("사용자 정보 요청 실패");
-  //     }
-  //   } catch (error) {
-  //     console.error("사용자 정보를 가져오는 중 오류 발생:", error);
-  //   }
-  // };
 
+  const [aiData, setAIData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const serverUrl = ENV.SERVER_URL;
+
+  useEffect(() => {
+    // aiTable 데이터를 주기적으로 가져오기 위한 함수
+    const fetchAiData = () => {
+      axios
+        .get(`${serverUrl}/aiTable`, {
+          params: { phoneNumber }
+        })
+        .then((response) => {
+          const aiDataFromAPI = response.data.aiData;
+          setAIData(aiDataFromAPI);
+          setLoading(false); 
+        })
+        .catch((error) => {
+          console.error("MySQL 데이터를 불러오는 중 오류 발생:", error);
+          setLoading(false); // 에러 발생 시 로딩 상태를 false로 설정
+        });
+    };
+
+    //  5분마다 데이터 업데이트
+    fetchAiData();
+    const intervalId = setInterval(fetchAiData, 5 * 60 * 1000); // 5분마다 실행
+
+    // 컴포넌트 언마운트 시에 interval 정리
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+
+  const handleMenuPress = () => {
+    navigation.navigate("Screen3", { phoneNumber });
+  };
+
+  const handleCalendarPress = () => {
+    navigation.navigate("Screen10", { phoneNumber });
+  };
+
+  const today = new Date();
+  const todayString = `${(today.getMonth() + 1).toString().padStart(2, '0')}월${today.getDate().toString().padStart(2, '0')}일`;
 
   return (
     <Pressable style={styles.pressable}>
@@ -41,47 +58,143 @@ const RiskContainer = ({ phoneNumber }) => {
         <View style={[styles.background, styles.backgroundPosition]} />
       </View>
 
+      <View style={styles.container}>
+        {loading ? (
+          <Text>Loading AI Data...</Text>
+        ) : (
+          <View style={[styles.scale, {width: 350}]}>
+            
+            <View style={[styles.scaleTick, { width: 100 }]} />
+            <View style={[styles.scaleTick2, { width: 120 }]} />
+            <View style={[styles.scaleTick3, { width: 130 }]} />
+            <View
+              style={[
+                styles.triangle,
+                {
+                  left: `${aiData}%`, // 위험도 수치에 따라 위치 조절
+                },
+              ]}
+            >
+            <Text style={styles.label}>위험도: {aiData}%</Text>
+            </View>
+          </View>
+        )}
+      </View>
 
-      <View style={[styles.rectangle, styles.rectangleLayout]} />
-      <Image
-        style={[styles.rectangleIcon, styles.rectangleLayout]}
-        resizeMode="cover"
-        source={require("../assets/rectangle.png")}
-      />
-      <View style={[styles.rectangle1, styles.rectangleLayout]} />
-      <Text style={[styles.thu, styles.thuTypo]}>주의</Text>
-      <Text style={[styles.thu1, styles.thuPosition]}>안전</Text>
-      <Text style={[styles.thu2, styles.thuTypo]}>위험</Text>
-      <Text style={[styles.thu1, styles.thuPosition]}>안전</Text>
       <Text style={[styles.recentlyAdded, styles.recentlyPosition]}>
-        오늘의 위험 확률
+        {todayString}의 위험 확률
       </Text>
-      <Text style={[styles.recentlyAdded1, styles.recentlyPosition]}>32%</Text>
-      <Text style={[styles.thu4, styles.thuPosition]}>안전</Text>
+
       
-      <Pressable
-        style={ styles.iconPosition}
-        onPress={() => navigation.goBack()}
-      >
-      <Image
-        style={[styles.icon, styles.iconPosition]}
-        resizeMode="cover"
-        source={require("../assets/arrow.png")}
-      />
-      </Pressable>
-      <View style={[styles.view, styles.iconPosition]} />
+
       <Pressable style={styles.menu} onPress={handleMenuPress}>
         <Image
           style={styles.icon1}
           resizeMode="cover"
-          source={require("../assets/menu.png")}
+          source={require("../assets/menu4.png")}
+        />
+      </Pressable>
+
+      <Pressable
+        style={styles.iconPosition2}
+        onPress={handleCalendarPress}
+      >
+        <Image
+          style={[styles.icon2, styles.iconPosition2]}
+          resizeMode="cover"
+          source={require("../assets/calendar3.png")}
         />
       </Pressable>
     </Pressable>
   );
 };
 
+
 const styles = StyleSheet.create({
+
+
+
+  
+  triangle: {
+    position: "absolute",
+    top: -12,
+    left: 95,
+    width: 0,
+    height: 0,
+    borderStyle: "solid",
+    borderTopWidth: 12,
+    borderLeftWidth: 7,
+    borderRightWidth: 7,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "white",
+  },
+  
+  container: {
+    alignItems: 'center',
+    marginTop: -20,
+  },
+  scale: {
+    flexDirection: 'row',
+    backgroundColor: '#ccc',
+    height: 13,
+    width: '80%',
+    marginTop: 200,
+  },
+
+  scaleTick: {
+    backgroundColor: "#90ee90",
+    height: '100%',
+    borderWidth: 1,
+    borderColor: "#707070",
+    borderStyle: "solid",
+  },
+  scaleTick2: {
+    backgroundColor: Color.khaki,
+    height: '100%',
+    borderWidth: 1,
+    borderColor: "#707070",
+    borderStyle: "solid",
+  },
+  scaleTick3:{
+    backgroundColor: Color.crimson,
+    height: '100%',
+    borderWidth: 1,
+    borderColor: "#707070",
+    borderStyle: "solid",
+  },
+  scaleTick4: {
+    backgroundColor: "#ffff",
+    height: '100%',
+    borderWidth: 0,
+    borderColor: "#707070",
+    borderStyle: "solid",
+  },
+  label: {
+    position: "absolute",
+    marginTop: -50,
+    fontSize: 20,
+    marginLeft: -53,
+    color: Color.white,
+    fontWeight:"700",
+  },
+
+  dangerMeterContainer: {
+    marginTop: 16,
+    marginLeft: 16,
+    marginRight: 16,
+  },
+  icon2: {
+    height: 40,
+    width: 40,
+  },
+  iconPosition2: {
+    marginLeft: 183, 
+    marginTop: 250,
+    position: "absolute",
+    
+  },
+
   backgroundPosition: {
     bottom: 0,
     left: 0,
@@ -124,6 +237,7 @@ const styles = StyleSheet.create({
     textAlign: "left",
     top: "50%",
     position: "absolute",
+    marginLeft: -5,
   },
   background: {
     backgroundColor: Color.gray_100,
@@ -134,24 +248,8 @@ const styles = StyleSheet.create({
     width: 67,
     height: 12,
   },
-  time1: {
-    marginTop: -11,
-    left: 32,
-    fontSize: FontSize.size_mini,
-    letterSpacing: 0,
-    textAlign: "center",
-    color: Color.white,
-    fontFamily: FontFamily.robotoRegular,
-  },
-  time: {
-    height: "50%",
-    width: "47.9%",
-    top: "27.27%",
-    right: "52.1%",
-    bottom: "22.73%",
-    left: "0%",
-    position: "absolute",
-  },
+
+
   barsstatusdefault: {
     height: 0,
     left: 0,
@@ -197,12 +295,13 @@ const styles = StyleSheet.create({
     marginTop: 89,
   },
   recentlyAdded: {
-    marginTop: -19.5,
+    marginTop: -64,
     left: "22.66%",
-    fontSize: FontSize.size_17xl,
+    fontSize: FontSize.size_6xl,
     fontWeight: "700",
     fontFamily: FontFamily.hancomMalangMalangRegular,
     color: Color.white,
+    marginLeft: 25,
   },
   recentlyAdded1: {
     marginTop: 56,
@@ -230,16 +329,17 @@ const styles = StyleSheet.create({
     height: 18,
   },
   icon1: {
-    marginTop: -68.5,
-    width: "100%",
-    height: "100%",
+    marginTop: -62,
+    width: "90%",
+    height: "90%",
+    marginLeft: -3,
   },
   menu: {
     right: 17,
-    width: 41, 
-    height: 41,
+    width: 35, 
+    height: 35,
     position: "absolute",
-    top: "58%",
+    top: "60%",
     transform: [{ translateY: -20.5 }],
   },
   pressable: {

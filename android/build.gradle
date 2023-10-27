@@ -19,3 +19,9 @@ buildscript {
         classpath("com.facebook.react:react-native-gradle-plugin")
     }
 }
+
+// project.ext.envConfigFiles = [
+//     debug: ".env",
+// ]
+
+// apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"

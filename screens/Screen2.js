@@ -1,40 +1,50 @@
-// import React, { useState, useEffect } from "react";
-import * as React from "react";
+// 본 - 발열량
+
+import React, { useState, useEffect } from "react";
+// import * as React from "react";
 import { StyleSheet, View, Image, Text, Pressable, ScrollView } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { FontSize, FontFamily, Border, Color } from "../GlobalStyles";
 import RiskContainer from "../components/RiskContainer";
+import TempSensorData from "../components/TempSensorData";
+import ENV from '../env';
 import axios from "axios";
 
 const Screen2 = ({route}) => {
   const phoneNumber = route.params.phoneNumber;
   const navigation = useNavigation();
+  const [sensorData, setSensorData] = useState(null); 
 
-  // const {phoneNumber} = route.params;
-  // const navigation = useNavigation();
-  // const [userInfo, setUserInfo] = useState(null);
+  const fetchSensorData = async () => {
+    try {
+      const serverUrl = ENV.SERVER_URL;
+      const response = await axios.get(`${serverUrl}/sensorData`, {
+        params: { phoneNumber },
+      });
+      
+      if (response.data.success) {
+        setSensorData(response.data.sensorData); // 가져온 센서 데이터 설정
+      } else {
+        console.error("센서 데이터 요청 실패");
+      }
+    } catch (error) {
+      console.error("센서 데이터를 가져오는 중 오류 발생:", error);
+    }
+  };
 
-  // // 사용자 정보 가져오기
-  // const fetchUserInfo = async () => {
-  //   try {
-  //     const serverUrl = 'http://192.168.35.45:3000'; // 서버 URL
-  //     const response = await axios.get(`${serverUrl}/getUserInfo`, {
-  //       params: { phoneNumber: route.params.phoneNumber } 
-  //     });
+  // 컴포넌트가 마운트될 때와 AI 데이터가 변경될 때 센서 데이터 가져오기
+  useEffect(() => {
+    fetchSensorData();
 
-  //     if (response.data.success) {
-  //       setUserInfo(response.data.user); // 가져온 사용자 정보 변수에 설정
-  //     } else {
-  //       console.error("사용자 정보 요청 실패");
-  //     }
-  //   } catch (error) {
-  //     console.error("사용자 정보를 가져오는 중 오류 발생:", error);
-  //   }
-  // };
+    // 30분마다 센서 데이터 가져오기
+    // const intervalId = setInterval(() => {fetchSensorData();}, 1800000);
+    const intervalId = setInterval(() => {fetchSensorData();}, 60000);
 
-  // useEffect(() => {
-  //   fetchUserInfo(); // 사용자 정보 가져오기
-  // }, []);
+    // 컴포넌트가 언마운트될 때 clearInterval을 호출
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []); 
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -60,6 +70,11 @@ const Screen2 = ({route}) => {
         source={require("../assets/21.png")}
       />
       <Image
+        style={[styles.icon5, styles.icon3Layout]}
+        resizeMode="cover"
+        source={require("../assets/gtemp2.png")}
+      />
+      <Image
         style={styles.icon4}
         resizeMode="cover"
         source={require("../assets/-1.png")}
@@ -77,17 +92,36 @@ const Screen2 = ({route}) => {
         />
       </Pressable>
       {/* 상자박스 */}
-      <View style={styles.view3}>
+      {/* <View style={styles.view3}>
         <View style={styles.view5Position}>
           <View style={[styles.view5, styles.view5Position]} />
         </View>
+      </View> */}
+      <ScrollView 
+      contentContainerStyle={styles.scrollViewContent}
+      horizontal={true}
+      showsHorizontalScrollIndicator = {true}
+      >
+      <View style={styles.view4}>
+
+      <TempSensorData tempSensorData={sensorData} /> 
       </View>
+      </ScrollView>
     </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  icon5: {
+    marginTop: -185,
+    marginLeft: 218,
+  },
+  
+  view4: {
+    flex: 1,
+    marginTop: 40,
+  },
   scrollViewContent: {
     flewGorw: 1,
   },
@@ -121,19 +155,10 @@ const styles = StyleSheet.create({
     textAlign: "left",
     fontFamily: FontFamily.robotoRegular,
   },
-  rectangleLayout: {
-    borderWidth: 1,
-    borderColor: "#707070",
-    borderStyle: "solid",
-    marginLeft: 51,
-    marginTop: -14,
-    height: 15,
-    width: 40,
-    borderRadius: Border.br_12xs,
-  },
+  
 
   icon1Layout:{
-    marginTop: 0,
+    marginTop: 1,
     marginLeft: 8,
   },
 
@@ -155,29 +180,8 @@ const styles = StyleSheet.create({
     width: 67,
     height: 12,
   },
-  time1: {
-    marginTop: -11,
-    left: 0,
-    fontSize: FontSize.size_mini,
-    letterSpacing: 0,
-    textAlign: "center",
-    color: Color.white,
-    fontFamily: FontFamily.robotoRegular,
-  },
-  time: {
-    height: "50%",
-    width: "47.9%",
-    top: "27.27%",
-    right: "52.1%",
-    bottom: "22.73%",
-    left: "0%",
-    position: "absolute",
-  },
-  barsstatusdefault: {
-    height: 44,
-    marginTop: -270,
-    width: 428,
-  },
+  
+ 
   icon: {
     height: "100%",
     width: "100%",
@@ -210,16 +214,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     color: Color.white,
   },
-  thu: {
-    marginTop: 23,
-    color: Color.lightgray,
-  },
-  thu1: {
-    color: Color.lightgray,
-  },
-  thu2: {
-    color: Color.white,
-  },
+  
   rectangleIcon: {
     marginLeft: 51,
     marginTop: -14,
@@ -240,8 +235,10 @@ const styles = StyleSheet.create({
     marginLeft: 82,
   },
   icon3: {
-    marginTop: -193,
-    marginLeft: 217,
+    marginTop: -200,
+    marginLeft: 218,
+    zIndex: 2,
+    
   },
   icon4: {
     width: 0,

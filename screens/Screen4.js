@@ -1,23 +1,58 @@
-//import React, { useState, useEffect } from "react";
-import * as React from "react";
+import React, { useState, useEffect } from "react";
+// import * as React from "react";
 import { Pressable, Image, StyleSheet, View, ScrollView } from "react-native";
 import RiskContainer from "../components/RiskContainer";
 import { useNavigation } from "@react-navigation/native";
 import { Border, Color } from "../GlobalStyles";
 import axios from "axios";
+import ALLSensorData from "../components/ALLSensorData";
+import ENV from '../env';
+import FireAlert from "../components/FireAlert";
+
 
 const Screen4 = ({route}) => {
   const phoneNumber = route.params.phoneNumber;
   // const [userInfo, setUserInfo] = useState(null);
   const navigation = useNavigation();
+  const [aiData, setAIData] = useState(null);
 
+  const fetchAIData = async () => {
+    try {
+      const serverUrl = ENV.SERVER_URL;
+      const response = await axios.get(`${serverUrl}/aiData`, {
+        params: { phoneNumber },
+      });
   
+      if (response.data.success) {
+        setAIData(response.data.aiData); // 가져온 AI 데이터 설정
+      } else {
+        console.error("AI 데이터 요청 실패");
+      }
+    } catch (error) {
+      console.error("AI 데이터를 가져오는 중 오류 발생:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAIData();
+
+    
+    // const aiDataIntervalId = setInterval(fetchAIData, 1800000); // 30분마다 AI 데이터 가져오기
+    const aiDataIntervalId = setInterval(fetchAIData, 300000); // 1분마다 AI 데이터 가져오기
+
+    return () => {
+      clearInterval(aiDataIntervalId);
+    };
+  }, []);
 
 
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', zIndex:3, }}>
+        <FireAlert />
+      </View>
     <View style={styles.view}>
-      <RiskContainer phoneNumber={phoneNumber}/>
+      <RiskContainer phoneNumber={phoneNumber} dangerPercentage={32}/>
       
 
       {/* 온습도 */}
@@ -53,19 +88,38 @@ const Screen4 = ({route}) => {
         resizeMode="cover"
         source={require("../assets/3.png")}
       />
-      {/* 상자박스 */}
-      <View style={styles.view1}>
-        <View style={styles.viewPosition}>
-          <View style={[styles.view3, styles.viewPosition]} />
-          
-        </View>
+      <Image
+        style={styles.icon4}
+        resizeMode="cover"
+        source={require("../assets/ztemp.png")}
+      />
+      <ScrollView 
+      contentContainerStyle={styles.scrollViewContent}
+      horizontal={true}
+      showsHorizontalScrollIndicator = {true}
+      >
+      {/* SensorDataChart 컴포넌트 추가 및 sensorData props 전달 */}
+      <View style={styles.view4}>
+      <ALLSensorData aiData={aiData} />
       </View>
+      
+      </ScrollView>
     </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  icon4: {
+    
+    marginTop: -133,
+    marginLeft:-1,
+  },
+
+  view4:{
+    flex: 1,
+    marginTop: 40,
+  },
   scrollViewContent: {
     flexGrow: 1,
     
@@ -103,7 +157,9 @@ const styles = StyleSheet.create({
   icon3: {
     width: 223,
     height: 129,
-    marginTop: 117,
+    marginTop: 123,
+    marginLeft: 10,
+    zIndex: 2,
   },
   view3: {
     borderTopLeftRadius: Border.br_15xl,
@@ -120,7 +176,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     width: "100%",
-    marginTop: -35,
+    marginTop: -33,
   },
 });
 
