@@ -35,7 +35,7 @@ const Screen1 = ({route}) => {
     fetchSensorData(); 
 
     // const sensorDataIntervalId = setInterval(fetchSensorData, 1800000); // 30분마다 센서 데이터 가져오기
-    const sensorDataIntervalId = setInterval(fetchSensorData, 60000); // 1분마다 센서 데이터 가져오기
+    const sensorDataIntervalId = setInterval(fetchSensorData, 30000); // 1분마다 센서 데이터 가져오기
 
     return () => {
       clearInterval(sensorDataIntervalId);

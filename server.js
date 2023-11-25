@@ -16,7 +16,15 @@ const port = 3000;
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ port: 8082 });
 // const wss = new WebSocket.Server('ws://localhost:8082');
-const pythonServerURL = 'http://192.168.35.45:5000';
+// const pythonServerURL = 'http://192.168.86.57:5000';
+const pythonServerURL = 'http://192.168.77.57:5000'
+// const pythonServerURL = 'http://192.168.35.45:5000';
+const today = new Date();
+today.setDate(today.getDate() + 1)
+today.setHours(-15, 0, 0, 0);
+// 내일 날짜 계산
+const tomorrow = new Date(today);
+tomorrow.setDate(today.getDate() + 1);
 
 
 
@@ -158,7 +166,7 @@ app.get('/getUserInfo', (req, res) => {
       //const user = result[0];
       if (result.length > 0) {
         const user = result[0];
-        console.log('사용자 정보조회 성공: ', user);
+        // console.log('사용자 정보조회 성공: ', user);
         res.json({ success: true, user: user });
       } else {
         res.json({ success: false, message: '사용자 정보가 없습니다.' });
@@ -332,8 +340,8 @@ app.post('/changeUserAddress', (req, res) => {
 
 //------------------------------------------------------------------------------------------------------
 //인공지능 확률 받아오기 - 그래프 
-cron.schedule('*/5 * * * *', () => {
-  
+
+
 app.get('/aiData', (req, res) => {
   const phoneNumber = req.query.phoneNumber;
 
@@ -351,10 +359,11 @@ app.get('/aiData', (req, res) => {
     }
 
     const sensorNumber = userResult[0].sensor_number;
-    console.log(sensorNumber);
+    // console.log(sensorNumber);
 
     // 검색된 센서 번호를 사용하여 AI 데이터를 가져오기
-    const queryGetAiData = 'SELECT * FROM ai WHERE sensor_number = ?';
+    const queryGetAiData = `SELECT * FROM ai WHERE sensor_number = ? 
+    AND ai.timestamp >= '${today.toISOString()}' AND ai.timestamp < '${tomorrow.toISOString()}'`;
 
     connection.query(queryGetAiData, [sensorNumber], (err, aiDataResult) => {
       if (err) {
@@ -366,13 +375,13 @@ app.get('/aiData', (req, res) => {
     });
   });
 });
-});
+
 
 //------------------------------------------------------------------------------------------------------
 // API 엔드포인트: 센서 데이터 가져오기
 app.get('/sensorData', (req, res) => {
   const phoneNumber = req.query.phoneNumber; 
-  // 사용자의 전화번호로 센서 번호를 검색하는 쿼리
+  
   const queryFindSensorNumber = 'SELECT sensor_number FROM users WHERE phone_number = ?';
 
   connection.query(queryFindSensorNumber, [phoneNumber], (err, userResult) => {
@@ -387,9 +396,9 @@ app.get('/sensorData', (req, res) => {
     }
 
     const sensorNumber = userResult[0].sensor_number;
-    console.log('검색된 센서 번호:', sensorNumber);
+    // console.log('검색된 센서 번호:', sensorNumber);
 
-    // 검색된 센서 번호를 사용하여 센서 데이터를 가져오는 쿼리
+    // 검색된 센서 번호를 사용하여 센서 데이터
     const queryGetSensorData = 'SELECT * FROM sensor_data WHERE sensor_number = ?';
 
     connection.query(queryGetSensorData, [sensorNumber], (err, sensorDataResult) => {
@@ -397,7 +406,7 @@ app.get('/sensorData', (req, res) => {
         console.error('MySQL 쿼리 오류:', err);
         return res.status(500).json({ error: '데이터베이스 오류' });
       }
-      console.log('센서 데이터:', sensorDataResult);
+      // console.log('센서 데이터:', sensorDataResult);
       res.json({ success: true, sensorData: sensorDataResult });
     });
   });
@@ -408,26 +417,11 @@ app.get('/sensorData', (req, res) => {
 
 //------------------------------------------------------------------------------------------------------
 // 화재 발생 -> 소방청 웹사이트로 알림 제공
-// const { startOfDay, addDays } = require('date-fns');
-// const today = new Date();
-// const tomorrow = addDays(today, 1);
-
-// const today = new Date();
-// // today.setHours(0, 0, 0, 0); // 오늘 날짜의 시작 시간
-
-// // 내일 날짜의 시작 시간을 계산
-// const tomorrow = new Date(today);
-// tomorrow.setDate(today.getDate() + 1);
-
-// console.log(today); // 오늘 날짜
-// console.log(tomorrow); // 내일 날짜
-
-
-const today = new Date();
-// today.setDate(today.getDate() + 1)
+const today1 = new Date();
+today.setDate(today.getDate() + 1)
 today.setHours(-15, 0, 0, 0);
 // 내일 날짜 계산
-const tomorrow = new Date(today);
+const tomorrow1 = new Date(today);
 tomorrow.setDate(today.getDate() + 1);
 
 
@@ -435,13 +429,27 @@ console.log(today);
 console.log(tomorrow);
 
 // 화재 감지를 주기적으로 확인하고 알림 전송
+// function checkFireAlert() {
+//   const query = `
+//     SELECT users.address
+//     FROM users
+//     JOIN sensor_data ON users.sensor_number = sensor_data.sensor_number
+//     WHERE sensor_data.flame_sensor_value like 1
+//     AND sensor_data.timestamp >= '${today.toISOString()}' AND sensor_data.timestamp < '${tomorrow.toISOString()}';
+//   `;
+
+let hasSentFireAlert = false; 
+
 function checkFireAlert() {
   const query = `
     SELECT users.address
     FROM users
     JOIN sensor_data ON users.sensor_number = sensor_data.sensor_number
+    JOIN ai ON users.sensor_number = ai.sensor_number
     WHERE sensor_data.flame_sensor_value = 1
-    AND sensor_data.timestamp >= '${today.toISOString()}' AND sensor_data.timestamp < '${tomorrow.toISOString()}';
+      AND sensor_data.timestamp >= '${today.toISOString()}' AND sensor_data.timestamp < '${tomorrow.toISOString()}'
+      AND ai.timestamp >= '${today.toISOString()}' AND ai.timestamp < '${tomorrow.toISOString()}'
+      AND ai.ai_data >= 70;
   `;
 
   connection.query(query, (error, results) => {
@@ -450,11 +458,10 @@ function checkFireAlert() {
       return;
     }
 
-    if (results.length > 0) {
+    if (results.length > 0 && !hasSentFireAlert) {
       results.forEach((result) => {
         const userAddress = result.address;
 
-        // 화재 감지 시 콘솔에 메시지 출력
         console.log('화재 감지');
 
         // 화재 알림을 전송
@@ -466,27 +473,31 @@ function checkFireAlert() {
         };
 
         wss.clients.forEach((client) => {
-          
           client.send(JSON.stringify(fireAlertData));
         });
+
+        // 화재 알림을 보냈으므로 상태 변수 업데이트
+    //     hasSentFireAlert = true;
       });
-    } else {
-      // 화재가 감지되지 않았을 때 콘솔에 메시지 출력
-      console.log('화재가 감지되지 않았습니다.');
+    // } else {
+    //   // 화재 감지되지 않았거나 이미 알림을 보낸 경우에는 콘솔에 메시지 출력
+    //   if (!hasSentFireAlert) {
+    //     console.log('화재가 감지되지 않았습니다.');
+    //   }
     }
   });
 }
 
 // 주기적으로 화재 감지 확인 
-setInterval(checkFireAlert, 60000); // 1분 간격으로 실행
+setInterval(checkFireAlert, 10000); // 1분 간격으로 실행
 
 
 //------------------------------------------------------------------------------------------------------
 // 아두이노 데이터를 저장하는 라우트
 app.post('/recieve', (req, res) => {
-  // 아두이노에서 보낸 데이터를 파싱
+  // 아두이노에서 보낸 데이터 파싱
   const { sensor_number, humidity, temperature, object_temp, ambient_temp, flame_sensor_value } = req.body;
-
+  console.log(flame_sensor_value);
   // 데이터베이스에 데이터 삽입
   const sql = 'INSERT INTO sensor_data (sensor_number, humidity, temperature, object_temp, ambient_temp, flame_sensor_value, timestamp) VALUES (?, ?, ?, ?, ?, ?, default)';
   connection.query(sql, [sensor_number, humidity, temperature, object_temp, ambient_temp, flame_sensor_value], (err, result) => {
@@ -498,35 +509,10 @@ app.post('/recieve', (req, res) => {
     console.log('데이터베이스에 데이터 저장 완료');
     res.json({ success: true, message: '데이터 저장 성공' });
 
-    // 인공지능 모델에 전달할 데이터
-    const inputData = {
-      humidity: humidity,
-      temperature: temperature,
-      object_temp: object_temp,
-      ambient_temp: ambient_temp,
-      flame_sensor_value: flame_sensor_value,
-    };
-    // Python 스크립트를 실행하여 인공지능 모델에 입력 데이터 전달 및 예측
-    const pythonProcess = childProcess.spawn('python', ['C:\\Users\\USER\\aistory_2\\AI\\ai1.py', JSON.stringify(inputData)]);
-
-    // Python 스크립트의 출력 수신
-    pythonProcess.stdout.on('data', (data) => {
-      const prediction = JSON.parse(data.toString());
-
-      
-      const insertPredictionSql = 'INSERT INTO ai (sensor_number, prediction) VALUES (?, ?)';
-      connection.query(insertPredictionSql, [sensor_number, JSON.stringify(prediction)], (err, predictionResult) => {
-        if (err) {
-          console.error('MySQL 쿼리 오류:', err);
-          return res.status(500).json({ success: false, error: '데이터베이스 오류' });
-        }
-
-        console.log('예측 결과를 데이터베이스에 저장 완료');
-        res.json({ success: true, message: '데이터 저장 및 예측 완료' });
       });
-    });
-  });
 });
+  
+
 
 
 
@@ -555,14 +541,14 @@ app.get('/senDataForDate', (req, res) => {
     console.log('검색된 센서 번호:', sensorNumber);
 
     // 검색된 센서 번호를 사용하여 센서 데이터를 가져오는 쿼리
-    const queryGetSensorData = 'SELECT * FROM sensor_data WHERE sensor_number = ? AND DATE(timestamp) =?';
+    const queryGetSensorData = 'SELECT * FROM sensor_data WHERE sensor_number = ? AND DATE(timestamp) = ?';
 
     connection.query(queryGetSensorData, [sensorNumber, selectedDate], (err, sensorDataResult) => {
       if (err) {
         console.error('MySQL 쿼리 오류:', err);
         // return res.status(500).json({ error: '데이터베이스 오류' });
       }
-      console.log('센서 데이터:', sensorDataResult);
+      // console.log('센서 데이터:', sensorDataResult);
       res.json({ success: true, sensorData: sensorDataResult });
     });
   });
@@ -591,7 +577,7 @@ app.get('/aiTable', (req, res) => {
     }
 
     const sensorNumber = userResult[0].sensor_number;
-    console.log(sensorNumber);
+    // console.log(sensorNumber);
 
     // 검색된 센서 번호를 사용하여 마지막으로 삽입된 AI 데이터
     const queryGetLastAiData = 'SELECT ai_data FROM ai WHERE sensor_number = ? ORDER BY id DESC LIMIT 1';
@@ -608,7 +594,7 @@ app.get('/aiTable', (req, res) => {
       }
 
       const aiData = aiDataResult[0].ai_data;
-      console.log('AI Data:', aiData);
+      // console.log('AI Data:', aiData);
 
       res.json({ success: true, aiData });
     });
@@ -618,7 +604,7 @@ app.get('/aiTable', (req, res) => {
 // --------------------------------------------------------------------------------------------------------
 //파이썬
 // 보낼 데이터
-// MySQL에서 데이터를 가져오는 쿼리
+
 // const sql = 'SELECT season, flame_sensor_value, humidity, object_temp, ambient_temp FROM sensor_data WHERE flame_sensor_value = 1';
 
 // connection.query(sql, (error, results) => {
@@ -647,7 +633,6 @@ app.get('/aiTable', (req, res) => {
 function fetchDataAndSendToPython() {
   const sql = 'SELECT season, flame_sensor_value, humidity, object_temp, ambient_temp FROM sensor_data  ORDER BY timestamp DESC LIMIT 1;';
   
-  // const sql = 'SELECT season, flame_sensor_value, humidity, object_temp, ambient_temp FROM sensor_data WHERE flame_sensor_value = 1';
 
   connection.query(sql, (error, results) => {
     if (error) {
@@ -658,6 +643,10 @@ function fetchDataAndSendToPython() {
     const dataToSend = {
       sensor_data: results,
     };
+
+    // if (results[0].flame_sensor_value === 0) {
+    //   dataToSend.sensor_data[0].ambient_temp = results[0].object_temp;
+    // }
 
     axios
       .post(pythonServerURL + '/predict', dataToSend)
@@ -671,9 +660,72 @@ function fetchDataAndSendToPython() {
   });
 }
 
-// 데이터 제공 및 요청 간격 지정
-const intervalInMinutes = 60; // 5분 
-setInterval(fetchDataAndSendToPython, intervalInMinutes * 60 * 1000);
+// 데이터 제공 및 요청 간격 
+setInterval(fetchDataAndSendToPython, 10000); // (10초)
+
+//-------------------------------------------------------------------------------
+
+
+function fetchDataAndCheckDifference() {
+  // 최신 데이터 가져오기
+  const latestDataQuery = 'SELECT timestamp, ambient_temp FROM sensor_data ORDER BY timestamp DESC LIMIT 1';
+  connection.query(latestDataQuery, (err, results) => {
+    if (err) {
+      console.error('데이터 조회 중 오류 발생: ', err);
+      return;
+    }
+
+    if (results.length > 0) {
+      const { timestamp, ambient_temp } = results[0];
+      checkTemperatureDifference(timestamp, ambient_temp);
+    }
+  });
+}
+
+let hasSentTempAlert = false; 
+
+function checkTemperatureDifference(currentTimestamp, currentAmbientTemp) {
+  // 이전 timestamp 가져오기
+  const previousDataQuery = 'SELECT timestamp, ambient_temp FROM sensor_data WHERE timestamp < ? ORDER BY timestamp DESC LIMIT 1';
+  connection.query(previousDataQuery, [currentTimestamp], (err, results) => {
+    if (err) {
+      console.error('이전 데이터 조회 중 오류 발생: ', err);
+      return;
+    }
+
+    if (results.length > 0) {
+      const { timestamp, ambient_temp: previousAmbientTemp } = results[0];
+      const tempDifference = currentAmbientTemp - previousAmbientTemp;
+
+      if (tempDifference >= 10 && !hasSentTempAlert) {
+        // console.log(`경고: ${currentTimestamp}에 측정된 Ambient Temp가 직전과 10도 이상 차이가 납니다!`);
+
+        // WebSocket을 통해 클라이언트에 경고 메시지 전송
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            const tempAlertData = {
+              alertMessage: '발열량 이상 발견',
+            };
+
+            client.send(JSON.stringify(tempAlertData));
+          }
+        });
+
+        // 경고를 보냈으므로 상태 변수를 업데이트하여 다음에는 보내지 않도록 함
+        hasSentTempAlert = true;
+      } else {
+        // 경고를 보내지 않은 경우에는 상태 변수를 초기화
+        hasSentTempAlert = false;
+      }
+    }
+  });
+}
+
+// 5초에 한 번씩 주기적으로 작업 실행
+setInterval(fetchDataAndCheckDifference, 10000);
+
+// 초기 실행
+// fetchDataAndCheckDifference();
 
 
 

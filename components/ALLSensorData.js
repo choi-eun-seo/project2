@@ -9,11 +9,14 @@ function ALLSensorData ({ aiData }){
 
    // 오늘 날짜 계산
    const today = new Date();
+  //  today.setDate(today.getDate() +2);
    today.setHours(0, 0, 0, 0);
+   console.log(today);
  
    // 오늘 날짜의 데이터 필터링
    const todayData = aiData.filter((dataPoint) => {
      const dataDate = new Date(dataPoint.timestamp);
+     console.log(dataDate);
      return dataDate >= today;
    });
 
@@ -40,11 +43,12 @@ function ALLSensorData ({ aiData }){
     backgroundGradientTo: 'rgba(192, 219, 234, 1)',
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     strokeWidth: 2, // 라인 굵기 설정
+    // legendPosition: 'left',
   };
 
   return (
     <LineChart
-      width={800}
+      width={1400}
       data={data}
       height={350}
       chartConfig={chartConfig}

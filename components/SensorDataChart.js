@@ -2,6 +2,7 @@ import React from 'react';
 import { LineChart } from 'react-native-chart-kit';
 
 
+
 function SensorDataChart ({ sensorData }){
   if (!sensorData || sensorData.length === 0) {
     return null; // 또는 다른 처리
@@ -47,11 +48,12 @@ function SensorDataChart ({ sensorData }){
     backgroundGradientTo: 'rgba(253, 208, 227, 0.5)',
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     strokeWidth: 2, // 라인 굵기 설정
+    // legendPosition: 'left',
   };
 
   return (
     <LineChart
-      width={800}
+      width={1400}
       data={data}
       height={400}
       chartConfig={chartConfig}

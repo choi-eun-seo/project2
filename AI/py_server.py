@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 import mysql.connector
+# import joblib
+import pickle
 
 
 # mysql 연결 설정
@@ -19,10 +21,14 @@ conn = mysql.connector.connect(**db_config)
 cursor = conn.cursor()
 
 app = Flask(__name__)
+  # 스케일러 파일 경로 수정
+# scaler = joblib.load('scaler2.pkl')
 
-model = torch.jit.load('model.pth')  #  PyTorch 모델 로드
+model = torch.load('model.pth')
+# model_weights = torch.load('model_weights2.pth')
 model.load_state_dict(torch.load('model_weights.pth'))
 
+model.eval()
 
 # 데이터 정규화를 위한 스케일러 로드
 scaler = StandardScaler()
@@ -48,15 +54,15 @@ def predict():
         
         # season을 더미 변수로 변환
         seasons = ['Autumn', 'Winter', 'Spring', 'Summer']
-        season_encoded = [1 if season == s else 0 for s in seasons]
+        # season_encoded = [1 if season == s else 0 for s in seasons]
         # season을 더미 변수로 변환
-        # season_encoded = pd.get_dummies(pd.Series([season]), prefix='season')
+        season_encoded = pd.get_dummies(pd.Series([season]), prefix='season')
 
         # 모든 특성을 하나의 텐서로 연결
         input_tensor = torch.tensor([season_encoded + [flame_sensor_value, humidity, object_temp, ambient_temp]], dtype=torch.float32)
         print(input_tensor)
-
-        # 모델로 예측 수행
+        
+        input_tensor[:, 1:] = torch.tensor(scaler.transform(input_tensor[:, 1:]), dtype=torch.float32)
         result = model(input_tensor).item()
 
         model.eval()

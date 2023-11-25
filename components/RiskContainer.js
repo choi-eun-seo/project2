@@ -32,7 +32,7 @@ const RiskContainer = ({ phoneNumber }) => {
 
     //  5분마다 데이터 업데이트
     fetchAiData();
-    const intervalId = setInterval(fetchAiData, 5 * 60 * 1000); // 5분마다 실행
+    const intervalId = setInterval(fetchAiData, 5000); // 5분마다 실행
 
     // 컴포넌트 언마운트 시에 interval 정리
     return () => {

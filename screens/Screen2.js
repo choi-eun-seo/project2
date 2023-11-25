@@ -38,7 +38,7 @@ const Screen2 = ({route}) => {
 
     // 30분마다 센서 데이터 가져오기
     // const intervalId = setInterval(() => {fetchSensorData();}, 1800000);
-    const intervalId = setInterval(() => {fetchSensorData();}, 60000);
+    const intervalId = setInterval(() => {fetchSensorData();}, 30000);
 
     // 컴포넌트가 언마운트될 때 clearInterval을 호출
     return () => {

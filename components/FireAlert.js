@@ -2,20 +2,25 @@ import React, { Component } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontSize } from '../GlobalStyles';
 
+
 class FireAlert extends Component {
   constructor(props) {
     super(props);
     this.state = {
       isModalVisible: false,
+      isHighHeatModalVisible: false,
     };
 
     // WebSocket 연결 설정
-    this.ws = new WebSocket('ws://192.168.86.57:8082'); // 서버 URL로 대체
+    this.ws = new WebSocket('ws://192.168.77.57:8082');
+    // this.ws = new WebSocket('ws://192.168.35.45:8082');
 
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.alertMessage === '화재 발생!') {
         this.showModal(); // 모달 열기
+      }else if (data.alertMessage === '발열량 이상 발견') {
+        this.showHighHeatModal(); // 발열량 이상 모달 열기
       }
     };
   }
@@ -29,6 +34,16 @@ class FireAlert extends Component {
   hideModal = () => {
     this.setState({ isModalVisible: false });
   };
+  // 발열량 이상 모달
+  showHighHeatModal = () => {
+    this.setState({ isHighHeatModalVisible: true });
+  };
+
+  // 발열량 이상 모달을 감추는 함수
+  hideHighHeatModal = () => {
+    this.setState({ isHighHeatModalVisible: false });
+  };
+
 
   render() {
     return (
@@ -55,6 +70,29 @@ class FireAlert extends Component {
             </View>
           </View>
         </Modal>
+        {/* 발열량 이상 모달 */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={this.state.isHighHeatModalVisible}
+          onRequestClose={() => {
+            console.log('High Heat Modal has been closed.');
+          }}
+        >
+          <View style={styles.centeredView}>
+            <View style={styles.modalView1}>
+              <Text style={styles.modalText}>발열량 이상 발견</Text>
+              <Text style={styles.modalText2}>발열량 이상이 감지되었습니다.</Text>
+              <Text style={styles.modalText3}>전선을 확인해주세요.</Text>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={this.hideHighHeatModal} // 모달 닫기
+              >
+                <Text style={styles.buttonText}>닫기</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -69,6 +107,16 @@ const styles = StyleSheet.create({
   modalView: {
     margin: 20,
     backgroundColor: 'red',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    elevation: 5,
+    width: 300,
+    height: 300,
+  },
+  modalView1: {
+    margin: 20,
+    backgroundColor: 'orange',
     borderRadius: 20,
     padding: 35,
     alignItems: 'center',

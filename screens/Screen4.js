@@ -38,7 +38,7 @@ const Screen4 = ({route}) => {
 
     
     // const aiDataIntervalId = setInterval(fetchAIData, 1800000); // 30분마다 AI 데이터 가져오기
-    const aiDataIntervalId = setInterval(fetchAIData, 300000); // 1분마다 AI 데이터 가져오기
+    const aiDataIntervalId = setInterval(fetchAIData, 20000); // 1분마다 AI 데이터 가져오기
 
     return () => {
       clearInterval(aiDataIntervalId);

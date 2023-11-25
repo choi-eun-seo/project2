@@ -6,11 +6,18 @@ function TempSensorData ({ tempSensorData }){
     return null; 
   }
 
-  //today
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
+  // //today
+  // const today = new Date();
+  // // today.setDate(today.getDate() + 1)
+  // // today.setHours(-15, 0, 0, 0);
+  // console.log(today);
+  // // 내일 날짜 계산
+  // const tomorrow = new Date(today);
+  // tomorrow.setDate(today.getDate() + 1);
 
   // 그래프 데이터 설정
   const todayTempSensorData = tempSensorData.filter((dataPoint) => {
@@ -46,11 +53,12 @@ function TempSensorData ({ tempSensorData }){
     backgroundGradientTo: 'rgba(211, 180, 225, 0.5)',
     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     strokeWidth: 2, // 라인 굵기 설정
+    // legendPosition: 'left',
   };
 
   return (
     <LineChart
-      width={800}
+      width={1400}
       data={data}
       height={400}
       chartConfig={chartConfig}

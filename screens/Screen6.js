@@ -51,8 +51,8 @@ const Screen6 = () => {
               aiData: aiData, // aiData를 Screen4로 전달
             });
   
-            console.log('Sensor Data:', sensorData);
-            console.log('AI Data:', aiData);
+            // console.log('Sensor Data:', sensorData);
+            // console.log('AI Data:', aiData);
           }
         }  
       

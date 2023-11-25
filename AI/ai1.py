@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import MinMaxScaler
 
 # 데이터 로드 및 전처리
-data = pd.read_csv(r'C:\Users\USER\aistory_2\AI\newait2.csv')
+data = pd.read_csv('/content/sample_data/newait2.csv')
 X = data[['season', 'flame_sensor_value', 'humidity', 'object_temp', 'ambient_temp']]
 X = pd.get_dummies(X, columns=['season'])
 y = data['fire']
@@ -36,16 +36,18 @@ class Net(nn.Module):
         self.dropout3 = nn.Dropout(0.3)
         self.fc4 = nn.Linear(32, 1)
         self.tanh = nn.Tanh()
+        # self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = self.dropout1(x)
-        x = torch.relu(self.fc2(x))
+        x = torch.tanh(self.fc2(x))
         x = self.dropout2(x)
         x = torch.sigmoid(self.fc3(x))
         x = self.dropout3(x)
         x = self.fc4(x)
         x = self.tanh(x)
+        # x = self.sigmoid(x)
         return x
 
 # Focal Loss 정의
@@ -75,7 +77,7 @@ class FocalLoss(nn.Module):
 # 모델 학습
 input_size = X_train.shape[1]
 model = Net(input_size)
-criterion = FocalLoss()  # Focal Loss를 사용
+criterion = FocalLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=10, verbose=True)
 
@@ -139,7 +141,7 @@ with torch.no_grad():
             return 'Low Risk'
         elif probability <= 0.65:
             return 'Medium Risk'
-        elif probability <= 0.8:
+        elif probability <= 0.7:
             return 'High Risk'
         else:
             return 'Very High Risk'
@@ -151,9 +153,49 @@ with torch.no_grad():
 
 
     results_binary_df = pd.DataFrame({'Actual': y_test.values, 'Predicted_Binary': predicted_binary.flatten()})
-    print("\nBinary Predictions:")
-    print(results_binary_df)
+    # print("\nBinary Predictions:")
+    # print(results_binary_df)
 
-  
 
+
+
+new_data = pd.read_csv('/content/sample_data/newwait3.csv')  # 새로운 데이터 파일 로드
+new_X = new_data[['season', 'flame_sensor_value', 'humidity', 'object_temp', 'ambient_temp']]
+new_X = pd.get_dummies(new_X, columns=['season'])
+
+# 결측치 처리
+new_X.fillna(new_X.mean(), inplace=True)
+
+# 특성 스케일링
+
+# 새로운 데이터에 대한 스케일러 생성 및 학습 데이터로 학습
+new_scaler = StandardScaler()
+
+new_X.iloc[:, 1:] = scaler.fit_transform(new_X.iloc[:, 1:])
+# 데이터 정규화
+missing_columns = set(X.columns) - set(new_X.columns)  # X에는 있지만 new_X에는 없는 컬럼 찾기
+for column in missing_columns:
+    new_X[column] = X[column].mean()  # 누락된 컬럼을 0으로 초기화
+
+
+
+new_X = new_X[X.columns]  # 컬럼 순서 일치시키기
+# print("학습 데이터 컬럼:", X.columns)
+# print("새로운 데이터 컬럼:", new_X.columns)
+# new_X = new_scaler.transform(new_X)  # 정규화
+
+# 새로운 데이터에 대한 예측
+with torch.no_grad():
+    new_inputs = torch.tensor(new_X.values, dtype=torch.float32)
+    new_predicted_logits = model(new_inputs)
+    new_predicted_prob = torch.sigmoid(new_predicted_logits).numpy()
+
+    threshold = 0.5
+    new_predicted_binary = (new_predicted_prob > threshold).astype(int)
+
+# 예측 결과 출력
+new_results_df = pd.DataFrame({'Predicted_Prob': new_predicted_prob.flatten()})
+# new_results_df['Risk_Level'] = new_results_df['Predicted_Prob'].apply(categorize_risk)  # 이 부분 수정 필요
+print("Predictions for new data:")
+print(new_results_df)
 
