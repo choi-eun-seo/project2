@@ -17,7 +17,7 @@ const server = http.createServer(app);
 const wss = new WebSocket.Server({ port: 8082 });
 // const wss = new WebSocket.Server('ws://localhost:8082');
 // const pythonServerURL = 'http://192.168.86.57:5000';
-const pythonServerURL = 'http://192.168.77.57:5000'
+const pythonServerURL = 'http://192.168.198.57:5000'
 // const pythonServerURL = 'http://192.168.35.45:5000';
 const today = new Date();
 today.setDate(today.getDate() + 1)
@@ -489,7 +489,7 @@ function checkFireAlert() {
 }
 
 // 주기적으로 화재 감지 확인 
-setInterval(checkFireAlert, 10000); // 1분 간격으로 실행
+setInterval(checkFireAlert, 5000); // 1분 간격으로 실행
 
 
 //------------------------------------------------------------------------------------------------------
@@ -632,7 +632,7 @@ app.get('/aiTable', (req, res) => {
 // 파이썬 서버에 주기적으로 데이터 전달
 function fetchDataAndSendToPython() {
   const sql = 'SELECT season, flame_sensor_value, humidity, object_temp, ambient_temp FROM sensor_data  ORDER BY timestamp DESC LIMIT 1;';
-  
+  //파이썬에 전달할 데이터 DB에서 추출하는 sql
 
   connection.query(sql, (error, results) => {
     if (error) {
@@ -641,21 +641,17 @@ function fetchDataAndSendToPython() {
     }
 
     const dataToSend = {
-      sensor_data: results,
+      sensor_data: results, // 파이썬 서버에 전달할 데이터
     };
 
-    // if (results[0].flame_sensor_value === 0) {
-    //   dataToSend.sensor_data[0].ambient_temp = results[0].object_temp;
-    // }
-
     axios
-      .post(pythonServerURL + '/predict', dataToSend)
+      .post(pythonServerURL + '/predict', dataToSend) // 엔드포인트
       .then((response) => {
-        console.log('Python 서버 응답:', response.data);
+        console.log('Python 서버 응답:', response.data); // 응답 완료 시 로그
         
       })
       .catch((error) => {
-        console.error('POST 요청 오류:', error);
+        console.error('POST 요청 오류:', error); // 에러 발생 시
       });
   });
 }

@@ -78,6 +78,9 @@ const Screen8 = ({route}) => {
   return (
     <ScrollView contentContainerStyle={styles.scrollViewContent}>
     <View style={styles.view}>
+      <View style={styles.view4}>
+        <ToggleEvent></ToggleEvent>
+      </View>
       <View style={styles.view1} />
       <Image
         style={[styles.icon, styles.iconLayout]}
@@ -172,6 +175,9 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     // paddingBottom:100,
+  },
+  view4: {
+    padding: 20,
   },
 
   recentlyTypo6: {

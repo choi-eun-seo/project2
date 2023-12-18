@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, View, Image, Pressable, ImageBackground, 
-  Text, ScrollView, TextInput, Alert } from "react-native";
+  Text, ScrollView, TextInput, Alert, Button } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import {styles} from "./styles3";
 import axios from "axios";
@@ -15,6 +15,13 @@ const Screen3 = ({route}) => {
   const [showAddressChange, setShowAddressChange] = useState(false);
   const [showSensorInfoChange, setShowSensorInfoChange] = useState(false);
   const [newSensorNumber, setNewSensorNumber] = useState("");
+  const [toggleState, setToggleState] = useState(false);
+
+  // // 토글 버튼 클릭 이벤트 핸들러
+  // const handleToggleClick = () => {
+  //   setToggleState(!toggleState); // 토글 상태 변경
+  //   // 여기에 토글 버튼을 클릭했을 때의 로직을 추가할 수 있습니다.
+  // };
  
   // 로그아웃 함수
   const handleLogout = () => {
@@ -184,6 +191,12 @@ const handleSensorInfoChangeClick = () => {
       <Text
         style={[styles.recentlyAdded1, styles.recentlyTypo1]}
       >{`위치 : ${userInfo?.address || "주소 정보 없음"}`}</Text>
+
+      {/* <View style={styles.view3}>
+          <Pressable onPress={handleToggleClick}>
+            <Text style={styles.toggleButtonText}>{toggleState ? "거주자 중에 장애인이 있습니다. ON" : "거주자 중에 장애인이 있습니다. OFF"}</Text>
+          </Pressable>
+      </View> */}
 
       {/* 개인정보 변경 버튼 */}
       <Pressable style={[styles.pressable, styles.pressableLayout]}

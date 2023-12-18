@@ -20,18 +20,24 @@ function CalendarDataChart ({ sensorData }){
     }),
     datasets: [
       {
-        data: sensorData.map((dataPoint) => dataPoint.object_temp), // 타겟온도 데이터를 Y 축으로 사용
-        color: (opacity = 1) => `rgba(239, 149, 149, ${opacity})`, // 라인 색상 설정
+        data: sensorData.map((dataPoint) => dataPoint.object_temp), 
+        // 타겟온도 데이터를 Y 축으로 사용
+        color: (opacity = 1) => `rgba(239, 149, 149, ${opacity})`, 
+        // 라인 색상 설정
         label: '타겟온도', // 라벨 설정
       },
       {
-        data: sensorData.map((dataPoint) => dataPoint.ambient_temp), // 주변 온도 데이터를 Y 축으로 사용
-        color: (opacity = 1) => `rgba(247, 219, 106, ${opacity})`, // 라인 색상 설정
+        data: sensorData.map((dataPoint) => dataPoint.ambient_temp), 
+        // 주변 온도 데이터를 Y 축으로 사용
+        color: (opacity = 1) => `rgba(247, 219, 106, ${opacity})`, 
+        // 라인 색상 설정
         label: '주변온도', // 라벨 설정
       },
       {
-        data: sensorData.map((dataPoint) => dataPoint.humidity), // 주변 온도 데이터를 Y 축으로 사용
-        color: (opacity = 1) => `rgba(112, 145, 245, ${opacity})`, // 라인 색상 설정
+        data: sensorData.map((dataPoint) => dataPoint.humidity), 
+        // 주변 온도 데이터를 Y 축으로 사용
+        color: (opacity = 1) => `rgba(112, 145, 245, ${opacity})`, 
+        // 라인 색상 설정
         label: '습도', // 라벨 설정
       },
       //  rgba(255, 105, 105,  rgba(112, 145, 245, - 파랑 , rgba(148, 166, 132, - 초록

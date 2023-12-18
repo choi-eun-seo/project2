@@ -12,7 +12,7 @@ class FireAlert extends Component {
     };
 
     // WebSocket 연결 설정
-    this.ws = new WebSocket('ws://192.168.77.57:8082');
+    this.ws = new WebSocket('ws://192.168.198.57:8082');
     // this.ws = new WebSocket('ws://192.168.35.45:8082');
 
     this.ws.onmessage = (event) => {

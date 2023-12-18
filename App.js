@@ -19,7 +19,6 @@ import Screen1 from "./screens/Screen1";
 
 
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { View, Text, Pressable, TouchableOpacity, ScrollView, Button } from "react-native";
 
 
 
@@ -38,7 +37,7 @@ const App = () => {
       <NavigationContainer>
         {hideSplashScreen ? (
           <Stack.Navigator
-            initialRouteName="Screen6"
+            initialRouteName="Screen6" // 스플래쉬 화면 
             screenOptions={{ headerShown: false }}
             
           >

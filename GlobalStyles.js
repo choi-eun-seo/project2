@@ -28,6 +28,10 @@ export const Color = {
   crimson: "#ff5370",
   khaki: "#fad267",
   steelblue: "rgba(99, 102, 158, 0.6)",
+  blue : "#161A30",
+  khaki2: "#4F6F52",
+  skyblue: "#61A3BA",
+  y1: "#FEFAE0",
 };
 /* Paddings */
 export const Padding = {

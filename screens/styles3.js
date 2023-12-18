@@ -3,6 +3,25 @@ import { Border, Color, FontSize, FontFamily, Padding } from "../GlobalStyles";
 
 
 export const styles = StyleSheet.create({
+    toggleButtonText: {
+      marginTop: 10,
+      // marginBottom: -25,
+      color: Color.dimgray,
+      fontFamily: FontFamily.hancomMalangMalangRegular,
+      fontWeight: "700",
+      fontSize: FontSize.size_lg,
+    },
+    view3:{
+      height: 70,
+      padding: 10,
+      zIndex: 10,
+      backgroundColor: Color.gray_200,
+      marginTop: 30,
+      marginRight: 50,
+      borderRadius: 10,
+      marginBottom: -40,
+      margin: 10,
+    },
     text1: {
       marginBottom: 10,
       marginLeft: 60,
